@@ -41,7 +41,7 @@
 
 # write.table(totalsurvey_org, file="totalsurvey_org.csv", row.names=FALSE,sep=";",qmethod=c("double"),fileEncoding = "UTF-8")
 # #om variabelen met contactgegevens te verwijderen
-totalsurvey <- read.csv2("C:/Users/Fheylen/OneDrive/Bureablad2/totalsurvey.csv")
+totalsurvey <- read.csv2("totalsurvey.csv")
 sub <- read.csv2("C:/Users/Fheylen/OneDrive/Bureablad2/sub.csv")
 
 names(sub)[1] <- "ID"
