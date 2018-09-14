@@ -1,11 +1,14 @@
-
-##HOi FRe
-
+###########################################################################################
+###########################################################################################
+##############################-~_Descriptive Paper-~-######################################
+###########################################################################################
+#### Evelien Willems      #################################################################
+#### Frederik Heylen ######################################################################
+###########################################################################################
+###########################################################################################
 
 #_____________________________________Load packages_______________________________________#
 {
-  
-  
   library("reshape")
   library("tidyr")
   library("ggplot2")
@@ -35,24 +38,24 @@
 
 #________________________________________Load data________________________________________#
 
-# totalsurvey_org <- read.csv2("C:/Users/EvWillems/Dropbox/F-E sharing/Advocacy Patterns/17052017 webclean.csv")
-# 
-# webcodingIGs <- read.csv2("H:/DOCTORAAT/DATA/Adviesraden/Final datasets/extrawebcodingIGs.csv")
+#Survey + advisory council + website coding + the hierachical coding
+data <- read.csv2("totalsurvey.csv")
 
-# write.table(totalsurvey_org, file="totalsurvey_org.csv", row.names=FALSE,sep=";",qmethod=c("double"),fileEncoding = "UTF-8")
-# #om variabelen met contactgegevens te verwijderen
-totalsurvey <- read.csv2("totalsurvey.csv")
-sub <- read.csv2("C:/Users/Fheylen/OneDrive/Bureablad2/sub.csv")
+recoder <- function(df, a, y)
+{
+  x <- grep(a, names(data), value = TRUE)
+  
+  for(i in x) {
+    z <- car::recode(df[[i]], y)
+    df <- cbind(df, z)
+    names(df)[names(df) == 'z'] <- gsub("b", "", paste(i, "r", sep=""))
+    print(gsub("b", "", paste(i, "r", sep="")))
+    print(table(df[[gsub("b", "", paste(i, "r", sep=""))]]))
+  }
+  df
+}
 
-names(sub)[1] <- "ID"
-
-# memberIGs <- read.csv2("H:/DOCTORAAT/DATA/Adviesraden/Final datasets/Interestgroups.csv")
-# accessmedia <- read.csv2("H:/DOCTORAAT/DATA/Adviesraden/media_access.csv")
-
-#________________________________________Merge data________________________________________#
-
-
-data <- merge(totalsurvey, sub, by="ID", all.y = TRUE, all.x = TRUE) 
+#________________________________________Recode __________________________________________#
 
 
 #q73 members origin region (1 = Flanders, 2 = Wallonia, 3 = Federal)
@@ -82,137 +85,35 @@ data <- merge(totalsurvey, sub, by="ID", all.y = TRUE, all.x = TRUE)
                                      NA)))
 }
 
-
-data <- within(data, {
-  q73r <- Recode(q73r, '1=NA; 2="VL"; 3="WL"')
-})
-
-#1 = FED
-#2= vl
-#3= WL
-
-plotmeans(data$totalent ~ data$q73r, data=data)
-
-
- 
-# names(totalsurvey)[c(1)] <- c("ID")
-# names(totalsurvey)[c(2)] <- ("Name")
-# names(memberIGs)[c(3)] <- c("ID")
-# names(memberIGs)[c(2)] <- c("ID_ac")
-# names(webcodingIGs)[c(1)] <- c("ID_ac")
-# names(webcodingIGs)[c(2)] <- ("Name")
-# 
-# access_totalsurvey <- merge(memberIGs, totalsurvey, by="ID", all.y = TRUE, all.x= TRUE) 
-# 
-# access_web <- merge(memberIGs, webcodingIGs, by="ID_ac", all.y = TRUE, all.x = TRUE) 
-# 
-# sub_totalsurvey <- c("ID", "Name.x", "ID_ac", "Database.x", "Database.ID" , "Type",                     
-#                "X..AC", "X..E", "X..A","X..O" , "Economic.Issues", "Seats.Economic.Issues",     
-#                "Rights", "Seats.Rights", "Health", "Seats.Health", "Agriculture", "Seats.Agriculture",          
-#                 "Labour", "Seats.Labour", "Education", "Seats.Education", "Environment", "Seats.Environment",          
-#                 "Energy", "Seats.Energy", "Immigration" , "Seats.Immigration", "Transportation" ,             "Seats.Transportation" ,      
-#                 "Justice.and.crime"  ,         "Seats.Justice.and.crime",     "Social.Policy" ,             
-#                 "Seats.Social.Policy"  ,       "Housing"   ,                  "Seats.Housing" ,             
-#                 "Commerce.and.banking"    ,    "Seats.Commerce.and.banking" , "Defence"  ,                  
-#                 "Seats.Defence"    ,           "Research"     ,               "Seats.Research"  ,           
-#                 "Foreign.Trade"   ,            "Seats.Foreign.Trade"   ,      "Foreign.Affairs"     ,       
-#                 "Seats.Foreign.Affairs"   ,    "Governmental.Issues"  ,       "Seats.Governmental.Issues" , 
-#                 "Public.lands"  ,              "Seats.Public.lands",          "Culture"  ,                  
-#                 "Seats.Culture",               "PLA.Flanders"  ,              "PLA.French.Community" ,      
-#                 "PLA.Wallonia"   ,             "PLA.Brussels"     ,           "PLA.Federal"      ,          
-#                 "PLA.German"       ,           "Founded.by.Flanders"     ,    "Founded.by.French.Community",
-#                 "Founded.by.Wallonia",         "Founded.by.Brussels",         "Founded.by.Federal" ,        
-#                 "Founded.by.German"   ,        "Name.y"    ,                                 
-#                 "Acronym" ,                   
-#                 "PLM1flanders"   ,             "PLM1wallonia"  ,              "PLM1brussels",               
-#                 "PLM1national"  ,              "PLM1european"   ,                            
-#                 "OS1"             ,            "OSM1"     ,                   "OS2"     ,                   
-#                 "OSM2"             ,           "OS3"        ,                 "OSM3"    ,                   
-#                 "Cause"  ,                     "Identity"    ,       
-#                 "YoF"     ,                    "PI"                  ,        "MS"   ,                      
-#                 "ISIC11"   ,                   "ISIC21"     ,                
-#                 "SS1"        ,                 "SS2" )
-# sub_totalsurvey <- access_totalsurvey[ ,c(sub_totalsurvey)]
-# names(sub_totalsurvey)[c(4)] <- ("Database")
-# 
-# 
-# sub_web<- c("ID", "Name.x", "ID_ac", "Database", "Database.ID" , "Type",                     
-#             "X..AC", "X..E", "X..A","X..O" , "Economic.Issues", "Seats.Economic.Issues",     
-#             "Rights", "Seats.Rights", "Health", "Seats.Health", "Agriculture", "Seats.Agriculture",          
-#             "Labour", "Seats.Labour", "Education", "Seats.Education", "Environment", "Seats.Environment",          
-#             "Energy", "Seats.Energy", "Immigration" , "Seats.Immigration", "Transportation" ,             "Seats.Transportation" ,      
-#             "Justice.and.crime"  ,         "Seats.Justice.and.crime",     "Social.Policy" ,             
-#             "Seats.Social.Policy"  ,       "Housing"   ,                  "Seats.Housing" ,             
-#             "Commerce.and.banking"    ,    "Seats.Commerce.and.banking" , "Defence"  ,                  
-#             "Seats.Defence"    ,           "Research"     ,               "Seats.Research"  ,           
-#             "Foreign.Trade"   ,            "Seats.Foreign.Trade"   ,      "Foreign.Affairs"     ,       
-#             "Seats.Foreign.Affairs"   ,    "Governmental.Issues"  ,       "Seats.Governmental.Issues" , 
-#             "Public.lands"  ,              "Seats.Public.lands",          "Culture"  ,                  
-#             "Seats.Culture",               "PLA.Flanders"  ,              "PLA.French.Community" ,      
-#             "PLA.Wallonia"   ,             "PLA.Brussels"     ,           "PLA.Federal"      ,          
-#             "PLA.German"       ,           "Founded.by.Flanders"     ,    "Founded.by.French.Community",
-#             "Founded.by.Wallonia",         "Founded.by.Brussels",         "Founded.by.Federal" ,        
-#             "Founded.by.German"   ,        "Name.y"    ,                  "Acronym" ,                   
-#             "PLM1flanders"   ,             "PLM1wallonia"  ,              "PLM1brussels",               
-#             "PLM1national"  ,              "PLM1european"   ,                            
-#             "OS1"             ,            "OSM1"     ,                   "OS2"     ,                   
-#             "OSM2"             ,           "OS3"        ,                 "OSM3"    ,                   
-#             "Cause"       ,                "Identity",     
-#             "YoF"     ,                    "PI"                  ,        "MS"   ,                      
-#             "ISIC11"   ,                   "ISIC21"     ,                
-#             "SS1"        ,                 "SS2" )
-# sub_web <- access_web[ ,c(sub_web)]
-# 
-# 
-# total <- rbind(sub_web, sub_totalsurvey) 
-# write.table(total, file="access.csv", row.names=FALSE,sep=";",qmethod=c("double"),fileEncoding = "UTF-8")
-# 
-# total <- subset(total, Name.y != "NA" & ID_ac != "NA", select=ID:SS2)
-# write.table(total, file="access.csv", row.names=FALSE,sep=";",qmethod=c("double"),fileEncoding = "UTF-8")
-# 
-# 
-# ### Load & merge data CIG-survey  ###
-# totalsurvey1 <- read.csv2("C:/Users/EvWillems/Dropbox/F-E sharing/Advocacy Patterns/surveymotherfile1.csv")
-# names(totalsurvey1)[c(3)] <- c("ID")
-# totalsurvey <- merge(total, totalsurvey1, by="ID", all.y = TRUE, all.x= TRUE) 
-# 
-# ### Delete generic terms ###
-# # exclude double IGs in KBO (NAs in my dataset)
-# totalsurvey <- subset(totalsurvey, Name.x != "NA" & ID_ac != "NA", select=ID:PrimaryFirst)
-# 
-# write.table(totalsurvey, file="totalsurvey.csv", row.names=FALSE,sep=";",qmethod=c("double"),fileEncoding = "UTF-8")
-
-
-## Creating new variable for IG type 
-
 # typology Frederik
-totalsurvey$q534 <- ifelse((totalsurvey$OS2==26&totalsurvey$OS1!=98) | (totalsurvey$OS3==26&totalsurvey$OS1!=98),1, 0)
+{ 
+data$q534 <- ifelse((data$OS2==26&data$OS1!=98) | (data$OS3==26&data$OS1!=98),1, 0)
 
-totalsurvey$q535 <- ifelse((totalsurvey$OS2==98&totalsurvey$OS1!=26) | (totalsurvey$OS3==98),1, 0)
+data$q535 <- ifelse((data$OS2==98&data$OS1!=26) | (data$OS3==98),1, 0)
 
-totalsurvey$q560 <- totalsurvey$OS1
-totalsurvey$q561 <- totalsurvey$OS2
-totalsurvey$q562 <- totalsurvey$OS3
+data$q560 <- data$OS1
+data$q561 <- data$OS2
+data$q562 <- data$OS3
 
-totalsurvey$q561 <- as.character(totalsurvey$q561)
-totalsurvey$q561[(totalsurvey$OS2==26&totalsurvey$OS1!=98) | (totalsurvey$OS2==98&totalsurvey$OS1!=26)] <- NA
-totalsurvey$q561 <- as.numeric (totalsurvey$q561)
+data$q561 <- as.character(data$q561)
+data$q561[(data$OS2==26&data$OS1!=98) | (data$OS2==98&data$OS1!=26)] <- NA
+data$q561 <- as.numeric (data$q561)
 
-totalsurvey$q562 <- as.character(totalsurvey$q562)
-totalsurvey$q562[(totalsurvey$OS3==26) | (totalsurvey$OS3==98)] <- NA
-totalsurvey$q562 <- as.numeric(totalsurvey$q562)
+data$q562 <- as.character(data$q562)
+data$q562[(data$OS3==26) | (data$OS3==98)] <- NA
+data$q562 <- as.numeric(data$q562)
 
 #typology
 
-totalsurvey$type1 <- ifelse(totalsurvey$q560 == 10 | totalsurvey$q560 == 50, 1,
-                      ifelse(totalsurvey$q560 == 21 | totalsurvey$q560 == 61, 2,
-                             ifelse(totalsurvey$q560 == 22 | totalsurvey$q560 == 62 , 3,
-                                    ifelse(totalsurvey$q560 == 23 | totalsurvey$q560 == 63 , 4,
-                                           ifelse(totalsurvey$q560 == 24 | totalsurvey$q560==64 , 5,
-                                                  ifelse(totalsurvey$Cause == 1 |totalsurvey$q560 == 66, 8,
-                                                         ifelse(totalsurvey$Identity == 1 , 9,
-                                                         ifelse(totalsurvey$q560==25 | totalsurvey$q560 == 65, 6,
-                                                                ifelse(totalsurvey$q560==30 | totalsurvey$q560 == 40, 7, 10
+data$type1 <- ifelse(data$q560 == 10 | data$q560 == 50, 1,
+                      ifelse(data$q560 == 21 | data$q560 == 61, 2,
+                             ifelse(data$q560 == 22 | data$q560 == 62 , 3,
+                                    ifelse(data$q560 == 23 | data$q560 == 63 , 4,
+                                           ifelse(data$q560 == 24 | data$q560==64 , 5,
+                                                  ifelse(data$Cause == 1 |data$q560 == 66, 8,
+                                                         ifelse(data$Identity == 1 , 9,
+                                                         ifelse(data$q560==25 | data$q560 == 65, 6,
+                                                                ifelse(data$q560==30 | data$q560 == 40, 7, 10
                                                          )))))))))
 
 
@@ -227,51 +128,51 @@ totalsurvey$type1 <- ifelse(totalsurvey$q560 == 10 | totalsurvey$q560 == 50, 1,
 # identity no members = 9
 # other = 10
 
-totalsurvey$type5 <- ifelse(totalsurvey$type1 == 1 , 2,
-                            ifelse(totalsurvey$type1 == 2 | totalsurvey$type1 == 3| totalsurvey$type1 == 4| totalsurvey$type1 == 5 | totalsurvey$type1 == 6, 1,
-                                   ifelse(totalsurvey$type1 == 7, 3,
-                                    ifelse(totalsurvey$type1 == 8 | totalsurvey$type1 == 9, 4, NA))))
+data$type5 <- ifelse(data$type1 == 1 , 2,
+                            ifelse(data$type1 == 2 | data$type1 == 3| data$type1 == 4| data$type1 == 5 | data$type1 == 6, 1,
+                                   ifelse(data$type1 == 7, 3,
+                                    ifelse(data$type1 == 8 | data$type1 == 9, 4, NA))))
 
 # individuen = 1
 # bedrijven = 2
 # instituties = 3
 # no members = 4
 
-totalsurvey$type6 <- ifelse(totalsurvey$type1 == 1 | totalsurvey$type1 == 7, 2,
-                            ifelse(totalsurvey$type1 == 2 | totalsurvey$type1 == 3| totalsurvey$type1 == 4| totalsurvey$type1 == 5 | totalsurvey$type1 == 6, 1,
-                                   ifelse(totalsurvey$type1 == 8 | totalsurvey$type1 == 9, 3, NA)))
+data$type6 <- ifelse(data$type1 == 1 | data$type1 == 7, 2,
+                            ifelse(data$type1 == 2 | data$type1 == 3| data$type1 == 4| data$type1 == 5 | data$type1 == 6, 1,
+                                   ifelse(data$type1 == 8 | data$type1 == 9, 3, NA)))
 
 # individuen = 1
 # bedrijven & instituties = 2
 # no members = 3
 
 
-totalsurvey$type2 <- ifelse(totalsurvey$type1 == 1 | totalsurvey$type1 == 2 | totalsurvey$type1 == 7, 1,
-                            ifelse(totalsurvey$type1 == 3 | totalsurvey$type1 == 4 | totalsurvey$type1 == 5 | totalsurvey$type1 == 6, 2,
-                                   ifelse(totalsurvey$type1 == 8 | totalsurvey$type1 == 9, 3, NA)))
+data$type2 <- ifelse(data$type1 == 1 | data$type1 == 2 | data$type1 == 7, 1,
+                            ifelse(data$type1 == 3 | data$type1 == 4 | data$type1 == 5 | data$type1 == 6, 2,
+                                   ifelse(data$type1 == 8 | data$type1 == 9, 3, NA)))
 
 # representative specific = 1
 # representative diffuse = 2
 # solidarity diffuse = 3
 # rest = NA
 
-totalsurvey$type4 <- ifelse(totalsurvey$type1 == 1 | totalsurvey$type1 == 2 | totalsurvey$type1 == 7, 1,
-                            ifelse(totalsurvey$type1 == 3 | totalsurvey$type1 == 4 | totalsurvey$type1 == 5 | totalsurvey$type1 == 6, 2,
-                                   ifelse(totalsurvey$type1 == 2 | totalsurvey$type1 == 9, 2, NA)))
+data$type4 <- ifelse(data$type1 == 1 | data$type1 == 2 | data$type1 == 7, 1,
+                            ifelse(data$type1 == 3 | data$type1 == 4 | data$type1 == 5 | data$type1 == 6, 2,
+                                   ifelse(data$type1 == 2 | data$type1 == 9, 2, NA)))
 
 # specific = 1
 # diffuse = 2
 
 
-totalsurvey$type3 <- ifelse(totalsurvey$q560 == 10 | totalsurvey$q560 == 50, 1,
-                            ifelse(totalsurvey$q560 == 21 | totalsurvey$q560 == 61, 2,
-                                   ifelse(totalsurvey$q560 == 22 | totalsurvey$q560 == 62 , 3,
-                                          ifelse(totalsurvey$q560 == 23 | totalsurvey$q560 == 63 , 4,
-                                                 ifelse(totalsurvey$q560 == 24 | totalsurvey$q560==64 , 5,
-                                                        ifelse(totalsurvey$Cause == 1 |totalsurvey$q560 == 66, 5,
-                                                               ifelse(totalsurvey$Identity == 1 , 4,
-                                                                      ifelse(totalsurvey$q560==25 | totalsurvey$q560 == 65, 6,
-                                                                             ifelse(totalsurvey$q560==30 | totalsurvey$q560 == 40, 7, NA)))))))))
+data$type3 <- ifelse(data$q560 == 10 | data$q560 == 50, 1,
+                            ifelse(data$q560 == 21 | data$q560 == 61, 2,
+                                   ifelse(data$q560 == 22 | data$q560 == 62 , 3,
+                                          ifelse(data$q560 == 23 | data$q560 == 63 , 4,
+                                                 ifelse(data$q560 == 24 | data$q560==64 , 5,
+                                                        ifelse(data$Cause == 1 |data$q560 == 66, 5,
+                                                               ifelse(data$Identity == 1 , 4,
+                                                                      ifelse(data$q560==25 | data$q560 == 65, 6,
+                                                                             ifelse(data$q560==30 | data$q560 == 40, 7, NA)))))))))
                                                                              
 
 #1 = business
@@ -282,23 +183,102 @@ totalsurvey$type3 <- ifelse(totalsurvey$q560 == 10 | totalsurvey$q560 == 50, 1,
 #6 = leisure
 #7 = institutions & PA
 
-totalsurvey$type_fin <- ifelse(totalsurvey$q560 == 10 | totalsurvey$q560 == 50, 1,
-                            ifelse(totalsurvey$q560 == 21 | totalsurvey$q560 == 61, 1,
-                                   ifelse(totalsurvey$q560 == 22 | totalsurvey$q560 == 62 , 3,
-                                          ifelse(totalsurvey$q560 == 23 | totalsurvey$q560 == 63 , 4,
-                                                 ifelse(totalsurvey$q560 == 24 | totalsurvey$q560==64 , 4,
-                                                        ifelse(totalsurvey$Cause == 1 |totalsurvey$q560 == 66, 4,
-                                                               ifelse(totalsurvey$Identity == 1 , 4,
-                                                                      ifelse(totalsurvey$q560==25 | totalsurvey$q560 == 65, 4,
-                                                                             ifelse(totalsurvey$q560==30 | totalsurvey$q560 == 40, 1, NA)))))))))
+data$type_fin <- ifelse(data$q560 == 10 | data$q560 == 50, 1,
+                            ifelse(data$q560 == 21 | data$q560 == 61, 1,
+                                   ifelse(data$q560 == 22 | data$q560 == 62 , 3,
+                                          ifelse(data$q560 == 23 | data$q560 == 63 , 4,
+                                                 ifelse(data$q560 == 24 | data$q560==64 , 4,
+                                                        ifelse(data$Cause == 1 |data$q560 == 66, 4,
+                                                               ifelse(data$Identity == 1 , 4,
+                                                                      ifelse(data$q560==25 | data$q560 == 65, 4,
+                                                                             ifelse(data$q560==30 | data$q560 == 40, 1, NA)))))))))
 
 
 #1 = business/institutions & PA/professionals
 #3 = labour
 #4 = identity/cause/leisure = citizen group
+}
 
-
+# number of staff 
+{
+  data$q21_01rec <- ifelse(data$q21_01 == -9998 & (data$q21_02 != -9998 |  data$q21_03 != -9998 | data$q21_04 != -9998) , 0, data$q21_01)
+  data$q21_02rec <- ifelse(data$q21_02 == -9998 & (data$q21_01 != -9998 |  data$q21_03 != -9998 | data$q21_04 != -9998) , 0, data$q21_02)
+  data$q21_03rec <- ifelse(data$q21_03 == -9998 & (data$q21_02 != -9998 |  data$q21_01 != -9998 | data$q21_04 != -9998) , 0, data$q21_03)
+  data$q21_04rec <- ifelse(data$q21_04 == -9998 & (data$q21_02 != -9998 |  data$q21_03 != -9998 | data$q21_01 != -9998) , 0, data$q21_04)
   
+  
+  data <- within(data, {
+    q21_01r <- Recode(q21_01rec, '-9998=NA')
+  })
+  
+  data$q21_01log <- with(data, log(q21_01r + 0.00000001))
+  
+}
+
+#funding resources, % of income from regional government (4), federal government (5), EU (6). (only recoded when the entire set of variables amount to 100% = else missing)
+{
+  #taking care of missing values
+  data <- within(data, {
+    q09_01r <- Recode(q09_01, '-9998=NA')
+  })
+  
+  data <- within(data, {
+    q09_02r <- Recode(q09_02, '-9998=NA')
+  })
+  
+  data <- within(data, {
+    q09_03r <- Recode(q09_03, '-9998=NA')
+  })
+  
+  data <- within(data, {
+    q09_04r <- Recode(q09_04, '-9998=NA')
+  })
+  data <- within(data, {
+    q09_05r <- Recode(q09_05, '-9998=NA')
+  })
+  
+  data <- within(data, {
+    q09_06r <- Recode(q09_06, '-9998=NA')
+  })
+  
+  data <- within(data, {
+    q09_07r <- Recode(q09b_07, '-9998=NA')
+  })
+  # sum of regional + national + EU funding (but only when the total sum adds up to at least 80%, otherwise set to NA)
+  data$pat<- ifelse(data$q09_01r + data$q09_02r + data$q09_03r + 
+                       data$q09_04r + data$q09_05r+ data$q09_06r + data$q09_07r > 80, data$q09_07r + data$q09_04r +data$q09_05r , NA)
+  
+  
+}
+
+# Social capital scale (membership involvement)
+{
+  data <- recoder(data, "q5_..", "-9998=NA; -9999=NA; 6=0")
+  
+  data$mem <- with(data, q5_01r +q5_03r + q5_02r + q5_04r +q5_05r + +q5_06r )
+  
+  data <- data [, c("q5_01r", "q5_03r",  "q5_02r", "q5_04r", "q5_05r")]
+  psych::alpha(data)#regular chronbach's Alpha 
+  matrix <- psych::polychoric(data)
+  psych::alpha(matrix$rho)# ordinal Alpha
+  
+}
+
+
+#________________________________________Analysis__________________________________________#
+
+#simple regression to check for differences in q73r
+
+summary(m1 <- lm(mem ~ as.factor(q73r),  data=data))
+
+summary(m1 <- lm(q21_01log ~ as.factor(q73r), data=data))
+
+summary(m1 <- lm(pat ~ as.factor(q73r),  data=data))
+
+
+
+
+
 totalsurvey$yes_no <- ifelse(totalsurvey$X..AC == 0, 0,
                        ifelse (totalsurvey$X..AC  != 0, 1 , NA))
 
