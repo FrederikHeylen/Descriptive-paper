@@ -14,16 +14,21 @@
   library("RcmdrMisc")
   library("interplot")
 }
-
 #________________________________________Load data________________________________________#
+{#Survey + advisory council + website coding + the hierachical coding
+data <- read.csv2("totalsurvey.csv")
 
+#only the survey data + website coding
+cigDF1 <- read.csv2("C:/Users/Fheylen/Dropbox/Website codering/Advocacy Patterns/surveymotherfile1.csv")
+cigDF2 <- read.csv2("C:/Users/Fheylen/Dropbox/Website codering/Advocacy Patterns/17052017 webclean.csv")
 
+names(cigDF1)[c(3)] <- c("ID")
 
+cigDF <- merge(cigDF1,cigDF2 , by="ID")
 
-#Survey + advisory council + website coding + the hierachical coding
-data <- read.csv2("surveytotal.csv")
-
-recoder <- function(df, a, y)
+rm(cigDF1, cigDF2)}
+#________________________________________Functions________________________________________#
+{recoder <- function(df, a, y)
 {
   x <- grep(a, names(data), value = TRUE)
   
@@ -35,21 +40,11 @@ recoder <- function(df, a, y)
     print(table(df[[gsub("b", "", paste(i, "r", sep=""))]]))
   }
   df
-}
-
+}}
 #________________________________________Recode __________________________________________#
-cigDF1 <- read.csv2("C:/Users/Fheylen/Dropbox/Website codering/Advocacy Patterns/surveymotherfile1.csv")
-cigDF2 <- read.csv2("C:/Users/Fheylen/Dropbox/Website codering/Advocacy Patterns/17052017 webclean.csv")
 
-names(cigDF1)[c(3)] <- c("ID")
-
-cigDF <- merge(cigDF1,cigDF2 , by="ID")
-
-rm(cigDF1, cigDF2)
-
-
-
-#q73 members origin region 
+#q73 members origin region, this is based on additional coding done during the survey process (we needed to identify the language). 
+#It is also possibe to do this based solely on the survey data (but might be less accurate), See code below.
 {
   cigDF <- within(cigDF, {
     q73b_01r <- Recode(q73b_01, '-9998=NA')
@@ -87,14 +82,41 @@ rm(cigDF1, cigDF2)
   cigDF <- within(cigDF, {
     q73r <- Recode(q73r, '1=2; 2=3; 3=1')
   })
+  
+  #1 = Federal
+  #2= FLemish
+  #3 = Walloon
 }
 
-# 1 = service
-# 2= professional
-# 3= advocacy
-# 4= business
-# 5= leissure
-# 6= rest
+    #q73 members origin region (1 = Flanders, 2 = Wallonia, 3 = Federal)
+    {
+    #   cigDF <- within(cigDF, {
+    #     q73b_01r <- Recode(q73b_01, '-9998=NA')
+    #   })
+    #   cigDF <- within(cigDF, {
+    #     q73b_02r <- Recode(q73b_02, '-9998=NA')
+    #   })
+    #   cigDF <- within(cigDF, {
+    #     q73b_03r <- Recode(q73b_03, '-9998=NA')
+    #   })
+    #   cigDF <- within(cigDF, {
+    #     q73b_04r <- Recode(q73b_04, '-9998=NA')
+    #   })
+    #   cigDF <- within(cigDF, {
+    #     q73b_05r <- Recode(q73b_05, '-9998=NA')
+    #   })
+    #   cigDF <- within(cigDF, {
+    #     q73b_06r <- Recode(q73b_06, '-9998=NA')
+    #   })
+    #   
+    #   cigDF$q73r <- ifelse(cigDF$q73b_04r==1&cigDF$q73b_01r!=1&cigDF$q73b_02r!=1,2,
+    #                        ifelse((cigDF$q73b_01r==1|cigDF$q73b_02r==1)&(cigDF$q73b_04r!=1&cigDF$q73b_06r!=1),3,
+    #                               ifelse((cigDF$q73b_06r==1|(cigDF$q73b_04r==1&cigDF$q73b_01r==1))|(cigDF$q73b_04r==1&cigDF$q73b_02r==1),1,
+    #                                      NA)))
+    }
+
+
+#group coding:type
 {
   cigDF$q534 <- ifelse((cigDF$OS2==26&cigDF$OS1!=98) | (cigDF$OS3==26&cigDF$OS1!=98),1, 0)
   
@@ -111,122 +133,15 @@ rm(cigDF1, cigDF2)
   cigDF$q562 <- as.character(cigDF$q562)
   cigDF$q562[(cigDF$OS3==26) | (cigDF$OS3==98)] <- NA
   cigDF$q562 <- as.numeric(cigDF$q562)
-  
-  #typology
-  
-  cigDF$type1 <- ifelse(cigDF$q560 == 10 | cigDF$q560 == 50, 1,
-                        ifelse(cigDF$q560 == 21 | cigDF$q560 == 61, 2,
-                               ifelse(cigDF$q560 == 22 | cigDF$q560 == 62 , 3,
-                                      ifelse(cigDF$q560 == 23 | cigDF$q560 == 63 , 3,
-                                             ifelse(cigDF$q560 == 24 | cigDF$q560==64 | cigDF$q560== 66, 3,
-                                                    ifelse(cigDF$q560 == 26 | cigDF$q560 == 98, 3,
-                                                           ifelse(cigDF$q560==25 | cigDF$q560 == 65, 5, 6
-                                                           )))))))
-  
-  
-  cigDF$type2 <-ifelse( cigDF$Latency ==1 & (cigDF$type1 == 3) , 4, cigDF$type1 )
-  
-  
-  cigDF <- within(cigDF, {
-    type2 <- Recode(type2, '1=4; 4=1')
-  })
-  
-}
-
-
-prop.table(table(cigDF$q73r, cigDF$type2),1)
-prop.table(table(cigDF$type2))
-prop.table(table(cigDF$q73r))
-# typology Frederik
-{ 
-  data$q534 <- ifelse((data$OS2==26&data$OS1!=98) | (data$OS3==26&data$OS1!=98),1, 0)
-  
-  data$q535 <- ifelse((data$OS2==98&data$OS1!=26) | (data$OS3==98),1, 0)
-  
-  data$q560 <- data$OS1
-  data$q561 <- data$OS2
-  data$q562 <- data$OS3
-  
-  data$q561 <- as.character(data$q561)
-  data$q561[(data$OS2==26&data$OS1!=98) | (data$OS2==98&data$OS1!=26)] <- NA
-  data$q561 <- as.numeric (data$q561)
-  
-  data$q562 <- as.character(data$q562)
-  data$q562[(data$OS3==26) | (data$OS3==98)] <- NA
-  data$q562 <- as.numeric(data$q562)
-  
-  #typology
-  
-  data$type1 <- ifelse(data$q560 == 10 | data$q560 == 50, 1,
-                       ifelse(data$q560 == 21 | data$q560 == 61, 2,
-                              ifelse(data$q560 == 22 | data$q560 == 62 , 3,
-                                     ifelse(data$q560 == 23 | data$q560 == 63 , 4,
-                                            ifelse(data$q560 == 24 | data$q560==64 , 5,
-                                                   ifelse(data$Cause == 1 |data$q560 == 66, 8,
-                                                          ifelse(data$Identity == 1 , 9,
-                                                                 ifelse(data$q560==25 | data$q560 == 65, 6,
-                                                                        ifelse(data$q560==30 | data$q560 == 40, 7, 10
-                                                                        )))))))))
-  
-  
-  # business = 1
-  # professionals = 2
-  # labour unions = 3
-  # identity = 4
-  # cause = 5
-  # leisure = 6
-  # institutions = 7
-  # cause no members = 8
-  # identity no members = 9
-  # other = 10
-  
-  data$type5 <- ifelse(data$type1 == 1 , 2,
-                       ifelse(data$type1 == 2 | data$type1 == 3| data$type1 == 4| data$type1 == 5 | data$type1 == 6, 1,
-                              ifelse(data$type1 == 7, 3,
-                                     ifelse(data$type1 == 8 | data$type1 == 9, 4, NA))))
-  
-  # individuen = 1
-  # bedrijven = 2
-  # instituties = 3
-  # no members = 4
-  
-  data$type6 <- ifelse(data$type1 == 1 | data$type1 == 7, 2,
-                       ifelse(data$type1 == 2 | data$type1 == 3| data$type1 == 4| data$type1 == 5 | data$type1 == 6, 1,
-                              ifelse(data$type1 == 8 | data$type1 == 9, 3, NA)))
-  
-  # individuen = 1
-  # bedrijven & instituties = 2
-  # no members = 3
-  
-  
-  data$type2 <- ifelse(data$type1 == 1 | data$type1 == 2 | data$type1 == 7, 1,
-                       ifelse(data$type1 == 3 | data$type1 == 4 | data$type1 == 5 | data$type1 == 6, 2,
-                              ifelse(data$type1 == 8 | data$type1 == 9, 3, NA)))
-  
-  # representative specific = 1
-  # representative diffuse = 2
-  # solidarity diffuse = 3
-  # rest = NA
-  
-  data$type4 <- ifelse(data$type1 == 1 | data$type1 == 2 | data$type1 == 7, 1,
-                       ifelse(data$type1 == 3 | data$type1 == 4 | data$type1 == 5 | data$type1 == 6, 2,
-                              ifelse(data$type1 == 2 | data$type1 == 9, 2, NA)))
-  
-  # specific = 1
-  # diffuse = 2
-  
-  
-  data$type3 <- ifelse(data$q560 == 10 | data$q560 == 50, 1,
-                       ifelse(data$q560 == 21 | data$q560 == 61, 2,
-                              ifelse(data$q560 == 22 | data$q560 == 62 , 3,
-                                     ifelse(data$q560 == 23 | data$q560 == 63 , 4,
-                                            ifelse(data$q560 == 24 | data$q560==64 , 5,
-                                                   ifelse(data$Cause == 1 |data$q560 == 66, 5,
-                                                          ifelse(data$Identity == 1 , 4,
-                                                                 ifelse(data$q560==25 | data$q560 == 65, 6,
-                                                                        ifelse(data$q560==30 | data$q560 == 40, 7, NA)))))))))
-  
-  
+  cigDF$type <- ifelse(cigDF$q560 == 10 | cigDF$q560 == 50, 1,
+                            ifelse(cigDF$q560 == 21 | cigDF$q560 == 61, 2,
+                                   ifelse(cigDF$q560 == 22 | cigDF$q560 == 62 , 3,
+                                          ifelse(cigDF$q560 == 23 | cigDF$q560 == 63 , 4,
+                                                 ifelse(cigDF$q560 == 24 | cigDF$q560==64 , 5,
+                                                        ifelse(cigDF$Cause == 1 |cigDF$q560 == 66, 5,
+                                                               ifelse(cigDF$Identity == 1 , 4,
+                                                                      ifelse(cigDF$q560==25 | cigDF$q560 == 65, 6,
+                                                                             ifelse(cigDF$q560==30 | cigDF$q560 == 40, 7, NA)))))))))
   #1 = business
   #2 = professionals
   #3 = labour
@@ -234,102 +149,652 @@ prop.table(table(cigDF$q73r))
   #5 = cause
   #6 = leisure
   #7 = institutions & PA
+  }
+
+#q02 age of the organization (log. transformed)
+{
+  cigDF$q02r <- Recode (cigDF$q02, '-9998= NA ; 1234 = NA ;0=NA')
   
-  data$type_fin <- ifelse(data$q560 == 10 | data$q560 == 50, 1,
-                          ifelse(data$q560 == 21 | data$q560 == 61, 1,
-                                 ifelse(data$q560 == 22 | data$q560 == 62 , 3,
-                                        ifelse(data$q560 == 23 | data$q560 == 63 , 4,
-                                               ifelse(data$q560 == 24 | data$q560==64 , 4,
-                                                      ifelse(data$Cause == 1 |data$q560 == 66, 4,
-                                                             ifelse(data$Identity == 1 , 4,
-                                                                    ifelse(data$q560==25 | data$q560 == 65, 4,
-                                                                           ifelse(data$q560==30 | data$q560 == 40, 1, NA)))))))))
-  
-  
-  #1 = business/institutions & PA/professionals
-  #3 = labour
-  #4 = identity/cause/leisure = citizen group
 }
 
-# number of staff 
+#number of staff 
 {
-  data$q21_01rec <- ifelse(data$q21_01 == -9998 & (data$q21_02 != -9998 |  data$q21_03 != -9998 | data$q21_04 != -9998) , 0, data$q21_01)
-  data$q21_02rec <- ifelse(data$q21_02 == -9998 & (data$q21_01 != -9998 |  data$q21_03 != -9998 | data$q21_04 != -9998) , 0, data$q21_02)
-  data$q21_03rec <- ifelse(data$q21_03 == -9998 & (data$q21_02 != -9998 |  data$q21_01 != -9998 | data$q21_04 != -9998) , 0, data$q21_03)
-  data$q21_04rec <- ifelse(data$q21_04 == -9998 & (data$q21_02 != -9998 |  data$q21_03 != -9998 | data$q21_01 != -9998) , 0, data$q21_04)
+  cigDF$q21_01rec <- ifelse(cigDF$q21_01 == -9998 & (cigDF$q21_02 != -9998 |  cigDF$q21_03 != -9998 | cigDF$q21_04 != -9998) , 0, cigDF$q21_01)
+  cigDF$q21_02rec <- ifelse(cigDF$q21_02 == -9998 & (cigDF$q21_01 != -9998 |  cigDF$q21_03 != -9998 | cigDF$q21_04 != -9998) , 0, cigDF$q21_02)
+  cigDF$q21_03rec <- ifelse(cigDF$q21_03 == -9998 & (cigDF$q21_02 != -9998 |  cigDF$q21_01 != -9998 | cigDF$q21_04 != -9998) , 0, cigDF$q21_03)
+  cigDF$q21_04rec <- ifelse(cigDF$q21_04 == -9998 & (cigDF$q21_02 != -9998 |  cigDF$q21_03 != -9998 | cigDF$q21_01 != -9998) , 0, cigDF$q21_04)
   
   
-  data <- within(data, {
+  cigDF <- within(cigDF, {
     q21_01r <- Recode(q21_01rec, '-9998=NA')
   })
   
-  data$q21_01log <- with(data, log(q21_01r + 0.00000001))
+}
+
+#resources
+{
+  cigDF <- within (cigDF,{
+    q08r <- Recode(q08, ' -9998 = NA; 9=NA'
+    )}) 
   
 }
 
-#funding resources, % of income from regional government (4), federal government (5), EU (6). (only recoded when the entire set of variables amount to 100% = else missing)
-{
-  #taking care of missing values
-  data <- within(data, {
-    q09_01r <- Recode(q09_01, '-9998=NA')
-  })
-  
-  data <- within(data, {
-    q09_02r <- Recode(q09_02, '-9998=NA')
-  })
-  
-  data <- within(data, {
-    q09_03r <- Recode(q09_03, '-9998=NA')
-  })
-  
-  data <- within(data, {
-    q09_04r <- Recode(q09_04, '-9998=NA')
-  })
-  data <- within(data, {
-    q09_05r <- Recode(q09_05, '-9998=NA')
-  })
-  
-  data <- within(data, {
-    q09_06r <- Recode(q09_06, '-9998=NA')
-  })
-  
-  data <- within(data, {
-    q09_07r <- Recode(q09b_07, '-9998=NA')
-  })
-  # sum of regional + national + EU funding (but only when the total sum adds up to at least 80%, otherwise set to NA)
-  data$pat<- ifelse(data$q09_01r + data$q09_02r + data$q09_03r + 
-                      data$q09_04r + data$q09_05r+ data$q09_06r + data$q09_07r > 80, data$q09_07r + data$q09_04r +data$q09_05r , NA)
-  
-  
+#policydomains
+{ cigDF <- within (cigDF,{
+  q16_01r <- Recode(q16_01, ' -9998 = NA'
+  )}) 
+  cigDF<- within(cigDF,{
+    q16_02r <- Recode(q16_02, ' -9998 = NA'
+    )})
+  cigDF<- within(cigDF,{
+    q16_03r <- Recode(q16_03, ' -9998 = NA'
+    )})
+  cigDF <- within(cigDF,{
+    q16_04r <- Recode(q16_04, ' -9998 = NA'
+    )})
+  cigDF <- within(cigDF,{
+    q16_05r <- Recode(q16_05, ' -9998 = NA'
+    )})
+  cigDF <- within(cigDF,{
+    q16_06r <- Recode(q16_06, ' -9998 = NA'
+    )})
+  cigDF <- within(cigDF,{
+    q16_07r <- Recode(q16_07, ' -9998 = NA'
+    )})
+  cigDF<- within(cigDF,{
+    q16_08r <- Recode(q16_08, '-9998 = NA'
+    )})
+  cigDF <- within(cigDF,{ 
+    q16_09r <- Recode(q16_09, ' -9998 = NA'
+    )})
+  cigDF<- within(cigDF,{ 
+    q16_10r <- Recode(q16_10, ' -9998 = NA'
+    )})
+  cigDF <- within(cigDF,{ 
+    q16_11r <- Recode(q16_11, ' -9998 = NA'
+    )})
+  cigDF<- within(cigDF,{
+    q16_12r <- Recode(q16_12, ' -9998 = NA'
+    )})
+  cigDF<- within(cigDF,{
+    q16_13r <- Recode(q16_13, ' -9998 = NA'
+    )})
+  cigDF <- within(cigDF,{
+    q16_14r <- Recode(q16_14, ' -9998 = NA'
+    )})
+  cigDF <- within(cigDF,{
+    q16_15r <- Recode(q16_15, ' -9998 = NA'
+    )})
+  cigDF <- within(cigDF,{ 
+    q16_16r <- Recode(q16_16, ' -9998 = NA'
+    )})
+  cigDF <- within(cigDF,{
+    q16_17r <- Recode(q16_17, ' -9998 = NA'
+    )})
+  cigDF <- within(cigDF,{
+    q16_18r <- Recode(q16_18, ' -9998 = NA'
+    )})
+  cigDF <- within(cigDF,{
+    q16_19r <- Recode(q16_19, ' -9998 = NA'
+    )})
+  cigDF <- within(cigDF,{
+    q16_20r <- Recode(q16_20, ' -9998 = NA'
+    )})
+  cigDF <- within(cigDF,{
+    q16_21r <- Recode(q16_21, ' -9998 = NA'
+    )})
+  cigDF <- within(cigDF,{
+    q16_22r <- Recode(q16_22, ' -9998 = NA'
+    )})
+  cigDF <- within(cigDF,{
+    q16_23r <- Recode(q16b_23, ' -9998 = NA'
+    )})
+
+
+cigDF$q16_25r <- 0 # q16_25 = sport
+
+cigDF$q16_25r <- ifelse( cigDF$ID == 1665 | cigDF$ID == 187 | cigDF$ID == 2313 | cigDF$ID ==  2714 | cigDF$ID == 245
+                               | cigDF$ID == 2169 | cigDF$ID == 1421 | cigDF$ID == 2225 | cigDF$ID == 175  | cigDF$ID == 2754
+                               | cigDF$ID == 2238 | cigDF$ID == 2259 | cigDF$ID == 2264 | cigDF$ID == 2308 | cigDF$ID == 2321
+                               | cigDF$ID == 2231 | cigDF$ID == 2168 | cigDF$ID == 2265 | cigDF$ID == 2278 | cigDF$ID == 2317
+                               | cigDF$ID == 2206 | cigDF$ID == 2260 | cigDF$ID == 2760 | cigDF$ID == 2251 | cigDF$ID == 2732
+                               | cigDF$ID == 2147 | cigDF$ID == 2267 | cigDF$ID == 2306 | cigDF$ID == 2172 | cigDF$ID == 2281
+                               | cigDF$ID == 2304 | cigDF$ID == 2761 | cigDF$ID == 2171 | cigDF$ID == 2198 | cigDF$ID == 2309
+                               | cigDF$ID == 2315 | cigDF$ID == 2248 | cigDF$ID == 2221 | cigDF$ID == 1803 | cigDF$ID == 2208
+                               | cigDF$ID == 2287 | cigDF$ID == 2240 | cigDF$ID == 2200 | cigDF$ID == 2252 | cigDF$ID == 2275
+                               | cigDF$ID == 2189 | cigDF$ID == 2192 | cigDF$ID == 2320 | cigDF$ID == 2255 | cigDF$ID == 2153
+                               | cigDF$ID == 2145 | cigDF$ID == 2680 | cigDF$ID == 2152 | cigDF$ID == 2296 | cigDF$ID == 25
+                               | cigDF$ID == 2272 | cigDF$ID == 2245 | cigDF$ID == 2242 | cigDF$ID == 2314 | cigDF$ID == 2230
+                               | cigDF$ID == 2190, 1, cigDF$q16_25r )
+
+cigDF$q16_26r <- 0 #q16_26 = Jeunesse 
+
+cigDF$q16_26r <- ifelse( cigDF$ID == 1584 | cigDF$ID == 1724  | cigDF$ID == 1450 | cigDF$ID == 1338 | cigDF$ID == 1910
+                               | cigDF$ID == 1959 | cigDF$ID == 1309 | cigDF$ID ==1391 | cigDF$ID == 1946 | cigDF$ID ==  1626
+                               | cigDF$ID == 1537 | cigDF$ID == 2061 | cigDF$ID == 1874 | cigDF$ID == 1329| cigDF$ID ==  1909
+                               | cigDF$ID == 1451 | cigDF$ID == 1608 | cigDF$ID == 1383 | cigDF$ID ==1461 | cigDF$ID ==  1968
+                               | cigDF$ID == 1636 | cigDF$ID == 2496 , 1, cigDF$q16_26r )
+
+
+cigDF$q16_27r <- 0 #16_27 = manufacturing/services 
+
+cigDF$q16_27r <- ifelse(  cigDF$ID == 2594 | cigDF$ID == 2042 | cigDF$ID == 1288 | cigDF$ID == 1178 | cigDF$ID == 2352
+                                | cigDF$ID == 2462 | cigDF$ID == 2473 | cigDF$ID == 2620 | cigDF$ID == 2572 | cigDF$ID == 308
+                                | cigDF$ID == 597 | cigDF$ID == 2345 | cigDF$ID == 447 | cigDF$ID == 668 | cigDF$ID == 2556
+                                | cigDF$ID == 172 | cigDF$ID == 1000 | cigDF$ID == 1278 | cigDF$ID == 2421 | cigDF$ID == 2126
+                                | cigDF$ID == 838 | cigDF$ID == 1108  | cigDF$ID == 1152 | cigDF$ID == 2578 | cigDF$ID == 2363
+                                | cigDF$ID == 2057 | cigDF$ID == 2377 | cigDF$ID == 557 | cigDF$ID == 927 | cigDF$ID == 2523
+                                | cigDF$ID == 2511 | cigDF$ID == 2382 | cigDF$ID == 1186 | cigDF$ID == 1749 | cigDF$ID == 813
+                                | cigDF$ID == 566 | cigDF$ID == 2507 | cigDF$ID == 1873 | cigDF$ID == 2322 | cigDF$ID == 843
+                                | cigDF$ID == 2353 | cigDF$ID == 2440 | cigDF$ID == 1994 | cigDF$ID == 2372 , 1, cigDF$q16_27r )
+
+cigDF$rights <- ifelse(cigDF$q16_12r == 1 | cigDF$q16_19r == 1, 1, 0) # one category for rights
+cigDF$fordef <- ifelse(cigDF$q16_14r == 1 | cigDF$q16_15r == 1, 1, 0) # one category for rights
+cigDF$EU <- ifelse(cigDF$q16_16r == 1 | cigDF$q16_18r == 1, 1, 0) # one category for EU policy
+
 }
 
-# Social capital scale (membership involvement)
+#political contacts
 {
-  data <- recoder(data, "q5_..", "-9998=NA; -9999=NA; 6=0")
+  #Federaal
+  {
+    cigDF$q33_01r<- ifelse(cigDF$q33_01 + cigDF$q33_02 + cigDF$q33_03 + cigDF$q33_04 + cigDF$q33_05 + cigDF$q33_06 + cigDF$q33b_07 + cigDF$q33b_08 == -79984, NA,
+                           ifelse (cigDF$q33_01 == -9998, 0 , 
+                                   ifelse(cigDF$q33_01 == 1, 0, 
+                                          ifelse(cigDF$q33_01 ==2, 1, 
+                                                 ifelse(cigDF$q33_01 ==3,  2, 
+                                                        ifelse(cigDF$q33_01 ==4, 3,
+                                                               ifelse(cigDF$q33_01 ==5, 4, NA))))))) 
+    
+    cigDF$q33_02r<- ifelse(cigDF$q33_01 + cigDF$q33_02 + cigDF$q33_03 + cigDF$q33_04 + cigDF$q33_05 + cigDF$q33_06 + cigDF$q33b_07 + cigDF$q33b_08 == -79984, NA,
+                           ifelse (cigDF$q33_02 == -9998, 0 , 
+                                   ifelse(cigDF$q33_02 == 1, 0, 
+                                          ifelse(cigDF$q33_02 ==2, 1, 
+                                                 ifelse(cigDF$q33_02 ==3,  2, 
+                                                        ifelse(cigDF$q33_02 ==4, 3,
+                                                               ifelse(cigDF$q33_02 ==5, 4, NA))))))) 
+    
+    cigDF$q33_03r<- ifelse(cigDF$q33_01 + cigDF$q33_02 + cigDF$q33_03 + cigDF$q33_04 + cigDF$q33_05 + cigDF$q33_06 + cigDF$q33b_07 + cigDF$q33b_08 == -79984, NA,
+                           ifelse (cigDF$q33_03 == -9998, 0 , 
+                                   ifelse(cigDF$q33_03 == 1, 0, 
+                                          ifelse(cigDF$q33_03 ==2, 1, 
+                                                 ifelse(cigDF$q33_03 ==3,  2, 
+                                                        ifelse(cigDF$q33_03 ==4, 3,
+                                                               ifelse(cigDF$q33_03 ==5, 4, NA)))))))
+    
+    cigDF$q33_04r<- ifelse(cigDF$q33_01 + cigDF$q33_02 + cigDF$q33_03 + cigDF$q33_04 + cigDF$q33_05 + cigDF$q33_06 + cigDF$q33b_07 + cigDF$q33b_08 == -79984, NA,
+                           ifelse (cigDF$q33_04 == -9998, 0 , 
+                                   ifelse(cigDF$q33_04 == 1, 0, 
+                                          ifelse(cigDF$q33_04 ==2, 1, 
+                                                 ifelse(cigDF$q33_04 ==3,  2, 
+                                                        ifelse(cigDF$q33_04 ==4, 3,
+                                                               ifelse(cigDF$q33_04 ==5, 4, NA))))))) 
+    
+    cigDF$q33_05r<- ifelse(cigDF$q33_01 + cigDF$q33_02 + cigDF$q33_03 + cigDF$q33_04 + cigDF$q33_05 + cigDF$q33_06 + cigDF$q33b_07 + cigDF$q33b_08 == -79984, NA,
+                           ifelse (cigDF$q33_05 == -9998, 0 , 
+                                   ifelse(cigDF$q33_05 == 1, 0, 
+                                          ifelse(cigDF$q33_05 ==2, 1, 
+                                                 ifelse(cigDF$q33_05 ==3,  2, 
+                                                        ifelse(cigDF$q33_05 ==4, 3,
+                                                               ifelse(cigDF$q33_05 ==5, 4, NA))))))) 
+    
+    cigDF$q33_06r<- ifelse(cigDF$q33_01 + cigDF$q33_02 + cigDF$q33_03 + cigDF$q33_04 + cigDF$q33_05 + cigDF$q33_06 + cigDF$q33b_07 + cigDF$q33b_08 == -79984, NA,
+                           ifelse (cigDF$q33_06 == -9998, 0 , 
+                                   ifelse(cigDF$q33_06 == 1, 0, 
+                                          ifelse(cigDF$q33_06 ==2, 1, 
+                                                 ifelse(cigDF$q33_06 ==3,  2, 
+                                                        ifelse(cigDF$q33_06 ==4, 3,
+                                                               ifelse(cigDF$q33_06 ==5, 4, NA))))))) 
+    
+    cigDF$q33_07r<- ifelse(cigDF$q33_01 + cigDF$q33_02 + cigDF$q33_03 + cigDF$q33_04 + cigDF$q33_05 + cigDF$q33_06 + cigDF$q33b_07 + cigDF$q33b_08 == -79984, NA,
+                           ifelse (cigDF$q33b_07 == -9998, 0 , 
+                                   ifelse(cigDF$q33b_07 == 1, 0, 
+                                          ifelse(cigDF$q33b_07 ==2, 1, 
+                                                 ifelse(cigDF$q33b_07 ==3,  2, 
+                                                        ifelse(cigDF$q33b_07 ==4, 3,
+                                                               ifelse(cigDF$q33b_07 ==5, 4, NA))))))) 
+    
+    cigDF$q33_08r<- ifelse(cigDF$q33_01 + cigDF$q33_02 + cigDF$q33_03 + cigDF$q33_04 + cigDF$q33_05 + cigDF$q33_06 + cigDF$q33b_07 + cigDF$q33b_08 == -79984, NA,
+                           ifelse (cigDF$q33b_08 == -9998, 0 , 
+                                   ifelse(cigDF$q33b_08 == 1, 0, 
+                                          ifelse(cigDF$q33b_08 ==2, 1, 
+                                                 ifelse(cigDF$q33b_08 ==3,  2, 
+                                                        ifelse(cigDF$q33b_08 ==4, 3,
+                                                               ifelse(cigDF$q33b_08 ==5, 4, NA))))))) 
+  }
+  #descriptives Federal
+  { # executive 
+    
+    cigDF$q33_01rr <- ifelse( !is.na(cigDF$q33_01r), cigDF$q33_01r,
+                              ifelse(cigDF$federalfinal == 0 & is.na(cigDF$q33_01r), 0, NA))
+    
+    cigDF$q33_04rr <- ifelse( !is.na(cigDF$q33_04r), cigDF$q33_04r,
+                              ifelse(cigDF$federalfinal == 0 & is.na(cigDF$q33_04r), 0, NA))
+    
+    cigDF$q33_07rr <- ifelse( !is.na(cigDF$q33_07r), cigDF$q33_07r,
+                              ifelse(cigDF$federalfinal == 0 & is.na(cigDF$q33_07r), 0, NA))
+    
+    cigDF$q33_08rr <- ifelse( !is.na(cigDF$q33_08r), cigDF$q33_08r,
+                              ifelse(cigDF$federalfinal == 0 & is.na(cigDF$q33_08r), 0, NA))
+    
+    a <- as.data.frame(prop.table(table(cigDF$q33_01rr)))
+    b <- as.data.frame(prop.table(table(cigDF$q33_04rr)))
+    c <- as.data.frame(prop.table(table(cigDF$q33_07rr)))
+    d <- as.data.frame(prop.table(table(cigDF$q33_08rr)))
+    
+    A <- (a[1,2] + b[1,2] + c[1,2] + d[1,2])/4
+    B <- (a[2,2] + b[2,2] + c[2,2] + d[2,2])/4
+    C <- (a[3,2] + b[3,2] + c[3,2] + d[3,2])/4
+    D <- (a[4,2] + b[4,2] + c[4,2] + d[4,2])/4
+    E <- (a[5,2] + b[5,2] + c[5,2] + d[5,2])/4
+    
+    #mean contact to the executive
+    fedexec <-  c(A,B,C,D,E)
+    fedexec
+    as.data.frame(fedexec)
+    
+    
+    #bureaucracy
+    
+    cigDF$q33_05rr <- ifelse( !is.na(cigDF$q33_05r), cigDF$q33_05r,
+                              ifelse(cigDF$federalfinal == 0 & is.na(cigDF$q33_05r), 0, NA))
+    cigDF$q33_06rr <- ifelse( !is.na(cigDF$q33_06r), cigDF$q33_06r,
+                              ifelse(cigDF$federalfinal == 0 & is.na(cigDF$q33_06r), 0, NA))
+    
+    a <- as.data.frame(prop.table(table(cigDF$q33_05rr)))
+    b <- as.data.frame(prop.table(table(cigDF$q33_06rr)))
+    
+    A <- (a[1,2] + b[1,2])/2
+    B <- (a[2,2] + b[2,2])/2
+    C <- (a[3,2] + b[3,2])/2
+    D <- (a[4,2] + b[4,2])/2
+    E <- (a[5,2] + b[5,2])/2
+    
+    fedbur <-  c(A,B,C,D,E)
+    fedbur
+    
+    #Parliament
+    
+    cigDF$q33_02rr <- ifelse( !is.na(cigDF$q33_02r), cigDF$q33_02r,
+                              ifelse(cigDF$federalfinal == 0 & is.na(cigDF$q33_02r), 0, NA))
+    cigDF$q33_03rr <- ifelse( !is.na(cigDF$q33_03r), cigDF$q33_03r,
+                              ifelse(cigDF$federalfinal == 0 & is.na(cigDF$q33_03r), 0, NA))
+    
+    
+    a <- as.data.frame(prop.table(table(cigDF$q33_02rr)))
+    b <- as.data.frame(prop.table(table(cigDF$q33_03rr)))
+    
+    A <- (a[1,2] + b[1,2])/2
+    B <- (a[2,2] + b[2,2])/2
+    C <- (a[3,2] + b[3,2])/2
+    D <- (a[4,2] + b[4,2])/2
+    E <- (a[5,2] + b[5,2])/2
+    
+    fedpar <-  c(A,B,C,D,E)
+    fedpar
+  }
+  #Waals gewest
+  {
+    cigDF$q100_01r<- ifelse(cigDF$q100b_01 + cigDF$q100b_02 + cigDF$q100b_03 + cigDF$q100b_04 + cigDF$q100b_05 + cigDF$q100b_06 == -59988, NA,
+                            ifelse (cigDF$q100b_01 == -9998, 0 , 
+                                    ifelse(cigDF$q100b_01 == 1, 0, 
+                                           ifelse(cigDF$q100b_01 ==2, 1, 
+                                                  ifelse(cigDF$q100b_01 ==3,  2, 
+                                                         ifelse(cigDF$q100b_01 ==4, 3,
+                                                                ifelse(cigDF$q100b_01 ==5, 4, NA))))))) 
+    
+    cigDF$q100_02r<- ifelse(cigDF$q100b_01 + cigDF$q100b_02 + cigDF$q100b_03 + cigDF$q100b_04 + cigDF$q100b_05 + cigDF$q100b_06 == -59988, NA,
+                            ifelse (cigDF$q100b_02 == -9998, 0 , 
+                                    ifelse(cigDF$q100b_02 == 1, 0, 
+                                           ifelse(cigDF$q100b_02 ==2, 1, 
+                                                  ifelse(cigDF$q100b_02 ==3,  2, 
+                                                         ifelse(cigDF$q100b_02 ==4, 3,
+                                                                ifelse(cigDF$q100b_02 ==5, 4, NA)))))))
+    
+    cigDF$q100_03r<- ifelse(cigDF$q100b_01 + cigDF$q100b_02 + cigDF$q100b_03 + cigDF$q100b_04 + cigDF$q100b_05 + cigDF$q100b_06 == -59988, NA,
+                            ifelse (cigDF$q100b_03 == -9998, 0 , 
+                                    ifelse(cigDF$q100b_03 == 1, 0, 
+                                           ifelse(cigDF$q100b_03 ==2, 1, 
+                                                  ifelse(cigDF$q100b_03 ==3,  2, 
+                                                         ifelse(cigDF$q100b_03 ==4, 3,
+                                                                ifelse(cigDF$q100b_03 ==5, 4, NA)))))))
+    
+    cigDF$q100_04r<- ifelse(cigDF$q100b_01 + cigDF$q100b_02 + cigDF$q100b_03 + cigDF$q100b_04 + cigDF$q100b_05 + cigDF$q100b_06 == -59988, NA,
+                            ifelse (cigDF$q100b_04 == -9998, 0 , 
+                                    ifelse(cigDF$q100b_04 == 1, 0, 
+                                           ifelse(cigDF$q100b_04 ==2, 1, 
+                                                  ifelse(cigDF$q100b_04 ==3,  2, 
+                                                         ifelse(cigDF$q100b_04 ==4, 3,
+                                                                ifelse(cigDF$q100b_04 ==5, 4, NA)))))))
+    
+    cigDF$q100_05r<- ifelse(cigDF$q100b_01 + cigDF$q100b_02 + cigDF$q100b_03 + cigDF$q100b_04 + cigDF$q100b_05 + cigDF$q100b_06 == -59988, NA,
+                            ifelse (cigDF$q100b_05 == -9998, 0 , 
+                                    ifelse(cigDF$q100b_05 == 1, 0, 
+                                           ifelse(cigDF$q100b_05 ==2, 1, 
+                                                  ifelse(cigDF$q100b_05 ==3,  2, 
+                                                         ifelse(cigDF$q100b_05 ==4, 3,
+                                                                ifelse(cigDF$q100b_05 ==5, 4, NA)))))))
+    
+    cigDF$q100_06r<- ifelse(cigDF$q100b_01 + cigDF$q100b_02 + cigDF$q100b_03 + cigDF$q100b_04 + cigDF$q100b_05 + cigDF$q100b_06 == -59988, NA,
+                            ifelse (cigDF$q100b_06 == -9998, 0 , 
+                                    ifelse(cigDF$q100b_06 == 1, 0, 
+                                           ifelse(cigDF$q100b_06 ==2, 1, 
+                                                  ifelse(cigDF$q100b_06 ==3,  2, 
+                                                         ifelse(cigDF$q100b_06 ==4, 3,
+                                                                ifelse(cigDF$q100b_06 ==5, 4, NA)))))))
+    
+    
+    
+    cigDF$q101_01r<- ifelse(cigDF$q101b_01 + cigDF$q101b_02 + cigDF$q101b_03 + cigDF$q101b_04 + cigDF$q101b_05 + cigDF$q101b_06 == -59988, NA,
+                            ifelse (cigDF$q101b_01 == -9998, 0 , 
+                                    ifelse(cigDF$q101b_01 == 1, 0, 
+                                           ifelse(cigDF$q101b_01 ==2, 1, 
+                                                  ifelse(cigDF$q101b_01 ==3,  2, 
+                                                         ifelse(cigDF$q101b_01 ==4, 3,
+                                                                ifelse(cigDF$q101b_01 ==5, 4, NA))))))) 
+    
+    cigDF$q101_02r<- ifelse(cigDF$q101b_01 + cigDF$q101b_02 + cigDF$q101b_03 + cigDF$q101b_04 + cigDF$q101b_05 + cigDF$q101b_06 == -59988, NA,
+                            ifelse (cigDF$q101b_02 == -9998, 0 , 
+                                    ifelse(cigDF$q101b_02 == 1, 0, 
+                                           ifelse(cigDF$q101b_02 ==2, 1, 
+                                                  ifelse(cigDF$q101b_02 ==3,  2, 
+                                                         ifelse(cigDF$q101b_02 ==4, 3,
+                                                                ifelse(cigDF$q101b_02 ==5, 4, NA)))))))
+    
+    cigDF$q101_03r<- ifelse(cigDF$q101b_01 + cigDF$q101b_02 + cigDF$q101b_03 + cigDF$q101b_04 + cigDF$q101b_05 + cigDF$q101b_06 == -59988, NA,
+                            ifelse (cigDF$q101b_03 == -9998, 0 , 
+                                    ifelse(cigDF$q101b_03 == 1, 0, 
+                                           ifelse(cigDF$q101b_03 ==2, 1, 
+                                                  ifelse(cigDF$q101b_03 ==3,  2, 
+                                                         ifelse(cigDF$q101b_03 ==4, 3,
+                                                                ifelse(cigDF$q101b_03 ==5, 4, NA)))))))
+    
+    cigDF$q101_04r<- ifelse(cigDF$q101b_01 + cigDF$q101b_02 + cigDF$q101b_03 + cigDF$q101b_04 + cigDF$q101b_05 + cigDF$q101b_06 == -59988, NA,
+                            ifelse (cigDF$q101b_04 == -9998, 0 , 
+                                    ifelse(cigDF$q101b_04 == 1, 0, 
+                                           ifelse(cigDF$q101b_04 ==2, 1, 
+                                                  ifelse(cigDF$q101b_04 ==3,  2, 
+                                                         ifelse(cigDF$q101b_04 ==4, 3,
+                                                                ifelse(cigDF$q101b_04 ==5, 4, NA)))))))
+    
+    cigDF$q101_05r<- ifelse(cigDF$q101b_01 + cigDF$q101b_02 + cigDF$q101b_03 + cigDF$q101b_04 + cigDF$q101b_05 + cigDF$q101b_06 == -59988, NA,
+                            ifelse (cigDF$q101b_05 == -9998, 0 , 
+                                    ifelse(cigDF$q101b_05 == 1, 0, 
+                                           ifelse(cigDF$q101b_05 ==2, 1, 
+                                                  ifelse(cigDF$q101b_05 ==3,  2, 
+                                                         ifelse(cigDF$q101b_05 ==4, 3,
+                                                                ifelse(cigDF$q101b_05 ==5, 4, NA)))))))
+    
+    cigDF$q101_06r<- ifelse(cigDF$q101b_01 + cigDF$q101b_02 + cigDF$q101b_03 + cigDF$q101b_04 + cigDF$q101b_05 + cigDF$q101b_06 == -59988, NA,
+                            ifelse (cigDF$q101b_06 == -9998, 0 , 
+                                    ifelse(cigDF$q101b_06 == 1, 0, 
+                                           ifelse(cigDF$q101b_06 ==2, 1, 
+                                                  ifelse(cigDF$q101b_06 ==3,  2, 
+                                                         ifelse(cigDF$q101b_06 ==4, 3,
+                                                                ifelse(cigDF$q101b_06 ==5, 4, NA)))))))
+    
+    
+  }
+  #descriptives Waal
+  { # executive 
+    cigDF$q100_01rr <- ifelse( !is.na(cigDF$q100_01r), cigDF$q100_01r,
+                               ifelse(cigDF$WLfinal == 0 & is.na(cigDF$q100_01r), 0, NA))
+    cigDF$q100_02rr <- ifelse( !is.na(cigDF$q100_02r), cigDF$q100_02r,
+                               ifelse(cigDF$WLfinal == 0 & is.na(cigDF$q100_02r), 0, NA))
+    cigDF$q100_03rr <- ifelse( !is.na(cigDF$q100_03r), cigDF$q100_03r,
+                               ifelse(cigDF$WLfinal == 0 & is.na(cigDF$q100_03r), 0, NA))
+    
+    cigDF$q101_01rr <- ifelse( !is.na(cigDF$q101_01r), cigDF$q101_01r,
+                               ifelse(cigDF$WLfinal == 0 & is.na(cigDF$q101_01r), 0, NA))
+    cigDF$q101_02rr <- ifelse( !is.na(cigDF$q101_02r), cigDF$q101_02r,
+                               ifelse(cigDF$WLfinal == 0 & is.na(cigDF$q101_02r), 0, NA))
+    cigDF$q101_03rr <- ifelse( !is.na(cigDF$q101_03r), cigDF$q101_03r,
+                               ifelse(cigDF$WLfinal == 0 & is.na(cigDF$q101_03r), 0, NA))
+    
+    
+    a <- as.data.frame(prop.table(table(cigDF$q100_01rr)))
+    b <- as.data.frame(prop.table(table(cigDF$q100_02rr)))
+    c <- as.data.frame(prop.table(table(cigDF$q100_03rr)))
+    
+    aa <- as.data.frame(prop.table(table(cigDF$q101_01rr)))
+    bb <- as.data.frame(prop.table(table(cigDF$q101_02rr)))
+    cc <- as.data.frame(prop.table(table(cigDF$q101_03rr)))
+    
+    A <- (a[1,2] + b[1,2] + c[1,2] + aa[1,2] + bb[1,2] + cc[1,2])/6
+    B <- (a[2,2] + b[2,2] + c[2,2] + aa[2,2] + bb[2,2] + cc[2,2])/6
+    C <- (a[3,2] + b[3,2] + c[3,2] + aa[3,2] + bb[3,2] + cc[3,2])/6
+    D <- (a[4,2] + b[4,2] + c[4,2] + aa[4,2] + bb[4,2] + cc[4,2])/6
+    E <- (a[5,2] + b[5,2] + c[5,2] + aa[5,2] + bb[5,2] + cc[5,2])/6
+    
+    #mean contact to the executive
+    walloonexec <-  c(A,B,C,D,E)
+    walloonexec
+    #bureaucracy
+    cigDF$q100_04rr <- ifelse( !is.na(cigDF$q100_04r), cigDF$q100_04r,
+                               ifelse(cigDF$WLfinal == 0 & is.na(cigDF$q100_04r), 0, NA))
+    
+    cigDF$q101_04rr <- ifelse( !is.na(cigDF$q101_04r), cigDF$q101_04r,
+                               ifelse(cigDF$WLfinal == 0 & is.na(cigDF$q101_04r), 0, NA))
+    
+    
+    
+    a <- as.data.frame(prop.table(table(cigDF$q100_04rr)))
+    b <- as.data.frame(prop.table(table(cigDF$q101_04rr)))
+    
+    A <- (a[1,2] + b[1,2])/2
+    B <- (a[2,2] + b[2,2])/2
+    C <- (a[3,2] + b[3,2])/2
+    D <- (a[4,2] + b[4,2])/2
+    E <- (a[5,2] + b[5,2])/2
+    
+    walloonbur <-  c(A,B,C,D,E)
+    walloonbur
+    #Parliament
+    
+    cigDF$q100_05rr <- ifelse( !is.na(cigDF$q100_05r), cigDF$q100_05r,
+                               ifelse(cigDF$WLfinal == 0 & is.na(cigDF$q100_05r), 0, NA))
+    cigDF$q100_06rr <- ifelse( !is.na(cigDF$q100_06r), cigDF$q100_06r,
+                               ifelse(cigDF$WLfinal == 0 & is.na(cigDF$q100_06r), 0, NA))
+    cigDF$q101_05rr <- ifelse( !is.na(cigDF$q101_05r), cigDF$q101_05r,
+                               ifelse(cigDF$WLfinal == 0 & is.na(cigDF$q101_05r), 0, NA))
+    cigDF$q101_06rr <- ifelse( !is.na(cigDF$q101_06r), cigDF$q101_06r,
+                               ifelse(cigDF$WLfinal == 0 & is.na(cigDF$q101_06r), 0, NA))
+    
+    
+    a <- as.data.frame(prop.table(table(cigDF$q100_05rr)))
+    b <- as.data.frame(prop.table(table(cigDF$q100_06rr)))
+    c <- as.data.frame(prop.table(table(cigDF$q101_05rr)))
+    D <- as.data.frame(prop.table(table(cigDF$q101_06rr)))
+    
+    A <- (a[1,2] + b[1,2] + c[1,2] + d[1,2])/4
+    B <- (a[2,2] + b[2,2] + c[2,2] + d[2,2])/4
+    C <- (a[3,2] + b[3,2] + c[3,2] + d[3,2])/4
+    D <- (a[4,2] + b[4,2] + c[4,2] + d[4,2])/4
+    E <- (a[5,2] + b[5,2] + c[5,2] + d[5,2])/4
+    
+    walloonpar <-  c(A,B,C,D,E)
+    walloonpar
+  }
+  #Vlaanderen
+  {
+    cigDF$q103_01r<- ifelse(cigDF$q103b_01 + cigDF$q103b_02 + cigDF$q103b_03 + cigDF$q103b_04 + cigDF$q103b_05 + cigDF$q103b_06 == -59988, NA,
+                            ifelse (cigDF$q103b_01 == -9998, 0 , 
+                                    ifelse(cigDF$q103b_01 == 1, 0, 
+                                           ifelse(cigDF$q103b_01 ==2, 1, 
+                                                  ifelse(cigDF$q103b_01 ==3,  2, 
+                                                         ifelse(cigDF$q103b_01 ==4, 3,
+                                                                ifelse(cigDF$q103b_01 ==5, 4, NA))))))) 
+    
+    cigDF$q103_02r<- ifelse(cigDF$q103b_01 + cigDF$q103b_02 + cigDF$q103b_03 + cigDF$q103b_04 + cigDF$q103b_05 + cigDF$q103b_06 == -59988, NA,
+                            ifelse (cigDF$q103b_02 == -9998, 0 , 
+                                    ifelse(cigDF$q103b_02 == 1, 0, 
+                                           ifelse(cigDF$q103b_02 ==2, 1, 
+                                                  ifelse(cigDF$q103b_02 ==3,  2, 
+                                                         ifelse(cigDF$q103b_02 ==4, 3,
+                                                                ifelse(cigDF$q103b_02 ==5, 4, NA)))))))
+    
+    cigDF$q103_03r<- ifelse(cigDF$q103b_01 + cigDF$q103b_02 + cigDF$q103b_03 + cigDF$q103b_04 + cigDF$q103b_05 + cigDF$q103b_06 == -59988, NA,
+                            ifelse (cigDF$q103b_03 == -9998, 0 , 
+                                    ifelse(cigDF$q103b_03 == 1, 0, 
+                                           ifelse(cigDF$q103b_03 ==2, 1, 
+                                                  ifelse(cigDF$q103b_03 ==3,  2, 
+                                                         ifelse(cigDF$q103b_03 ==4, 3,
+                                                                ifelse(cigDF$q103b_03 ==5, 4, NA)))))))
+    
+    cigDF$q103_04r<- ifelse(cigDF$q103b_01 + cigDF$q103b_02 + cigDF$q103b_03 + cigDF$q103b_04 + cigDF$q103b_05 + cigDF$q103b_06 == -59988, NA,
+                            ifelse (cigDF$q103b_04 == -9998, 0 , 
+                                    ifelse(cigDF$q103b_04 == 1, 0, 
+                                           ifelse(cigDF$q103b_04 ==2, 1, 
+                                                  ifelse(cigDF$q103b_04 ==3,  2, 
+                                                         ifelse(cigDF$q103b_04 ==4, 3,
+                                                                ifelse(cigDF$q103b_04 ==5, 4, NA)))))))
+    
+    cigDF$q103_05r<- ifelse(cigDF$q103b_01 + cigDF$q103b_02 + cigDF$q103b_03 + cigDF$q103b_04 + cigDF$q103b_05 + cigDF$q103b_06 == -59988, NA,
+                            ifelse (cigDF$q103b_05 == -9998, 0 , 
+                                    ifelse(cigDF$q103b_05 == 1, 0, 
+                                           ifelse(cigDF$q103b_05 ==2, 1, 
+                                                  ifelse(cigDF$q103b_05 ==3,  2, 
+                                                         ifelse(cigDF$q103b_05 ==4, 3,
+                                                                ifelse(cigDF$q103b_05 ==5, 4, NA)))))))
+    
+    cigDF$q103_06r<- ifelse(cigDF$q103b_01 + cigDF$q103b_02 + cigDF$q103b_03 + cigDF$q103b_04 + cigDF$q103b_05 + cigDF$q103b_06 == -59988, NA,
+                            ifelse (cigDF$q103b_06 == -9998, 0 , 
+                                    ifelse(cigDF$q103b_06 == 1, 0, 
+                                           ifelse(cigDF$q103b_06 ==2, 1, 
+                                                  ifelse(cigDF$q103b_06 ==3,  2, 
+                                                         ifelse(cigDF$q103b_06 ==4, 3,
+                                                                ifelse(cigDF$q103b_06 ==5, 4, NA)))))))
+  }
+  #descriptives Flanders
+  { # executive 
+    
+    cigDF$q103_01rr <- ifelse( !is.na(cigDF$q103_01r), cigDF$q103_01r,
+                               ifelse(cigDF$VLfinal == 0 & is.na(cigDF$q103_01r), 0, NA))
+    cigDF$q103_02rr <- ifelse( !is.na(cigDF$q103_02r), cigDF$q103_02r,
+                               ifelse(cigDF$VLfinal == 0 & is.na(cigDF$q103_02r), 0, NA))
+    cigDF$q103_03rr <- ifelse( !is.na(cigDF$q103_03r), cigDF$q103_03r,
+                               ifelse(cigDF$VLfinal == 0 & is.na(cigDF$q103_03r), 0, NA))
+    
+    
+    a <- as.data.frame(prop.table(table(cigDF$q103_01rr)))
+    b <- as.data.frame(prop.table(table(cigDF$q103_02rr)))
+    c <- as.data.frame(prop.table(table(cigDF$q103_03rr)))
+    
+    
+    A <- (a[1,2] + b[1,2] + c[1,2])/3
+    B <- (a[2,2] + b[2,2] + c[2,2])/3
+    C <- (a[3,2] + b[3,2] + c[3,2])/3
+    D <- (a[4,2] + b[4,2] + c[4,2])/3
+    E <- (a[5,2] + b[5,2] + c[5,2])/3
+    
+    #mean contact to the executive
+    flexec <-  c(A,B,C,D,E)
+    flexec
+    
+    #bureaucracy
+    
+    cigDF$q103_04rr <- ifelse( !is.na(cigDF$q103_04r), cigDF$q103_04r,
+                               ifelse(cigDF$VLfinal == 0 & is.na(cigDF$q103_04r), 0, NA))
+    
+    flbur <- prop.table(table(cigDF$q103_04rr))
+    flbur
+    #Parliament
+    
+    cigDF$q103_05rr <- ifelse( !is.na(cigDF$q103_05r), cigDF$q103_05r,
+                               ifelse(cigDF$VLfinal == 0 & is.na(cigDF$q103_05r), 0, NA))
+    cigDF$q103_06rr <- ifelse( !is.na(cigDF$q103_06r), cigDF$q103_06r,
+                               ifelse(cigDF$VLfinal == 0 & is.na(cigDF$q103_06r), 0, NA))
+    
+    a <- as.data.frame(prop.table(table(cigDF$q103_05rr)))
+    b <- as.data.frame(prop.table(table(cigDF$q103_06rr)))
+    
+    A <- (a[1,2] + b[1,2])/2
+    B <- (a[2,2] + b[2,2])/2
+    C <- (a[3,2] + b[3,2])/2
+    D <- (a[4,2] + b[4,2])/2
+    E <- (a[5,2] + b[5,2])/2
+    
+    flpar <-  c(A,B,C,D,E)
+    flpar
+  }
   
-  data$mem <- with(data, q5_01r +q5_03r + q5_02r + q5_04r +q5_05r + +q5_06r )
   
-  data <- data [, c("q5_01r", "q5_03r",  "q5_02r", "q5_04r", "q5_05r")]
-  psych::alpha(data)#regular chronbach's Alpha 
-  matrix <- psych::polychoric(data)
-  psych::alpha(matrix$rho)# ordinal Alpha
   
 }
 
 
 #________________________________________Analysis__________________________________________#
 
-#simple regression to check for differences in q73r
+#distribution across the different levels of government
+prop.table(table(cigDF$q73r))
 
-summary(m1 <- lm(mem ~ as.factor(q73r),  data=data))
+#table 1
+prop.table(table(cigDF$q73r, cigDF$type),1)
+prop.table(table(cigDF$type))
 
-summary(m1 <- lm(q21_01log ~ as.factor(q73r), data=data))
+#table 2
+## col 1
+mean(na.omit(cigDF[which(cigDF$type==1), which(colnames(cigDF)=="q02r" )]))
+mean(na.omit(cigDF[which(cigDF$type==2), which(colnames(cigDF)=="q02r" )]))
+mean(na.omit(cigDF[which(cigDF$type==3), which(colnames(cigDF)=="q02r" )]))
+mean(na.omit(cigDF[which(cigDF$type==4), which(colnames(cigDF)=="q02r" )]))
+mean(na.omit(cigDF[which(cigDF$type==5), which(colnames(cigDF)=="q02r" )]))
+mean(na.omit(cigDF[which(cigDF$type==6), which(colnames(cigDF)=="q02r" )]))
+mean(na.omit(cigDF[which(cigDF$type==7), which(colnames(cigDF)=="q02r" )]))
 
-summary(m1 <- lm(pat ~ as.factor(q73r),  data=data))
+## col 2
+mean(na.omit(cigDF[which(cigDF$type==1), which(colnames(cigDF)=="q21_01r" )]))
+mean(na.omit(cigDF[which(cigDF$type==2), which(colnames(cigDF)=="q21_01r" )]))
+mean(na.omit(cigDF[which(cigDF$type==3), which(colnames(cigDF)=="q21_01r" )]))
+mean(na.omit(cigDF[which(cigDF$type==4), which(colnames(cigDF)=="q21_01r" )]))
+mean(na.omit(cigDF[which(cigDF$type==5), which(colnames(cigDF)=="q21_01r" )]))
+mean(na.omit(cigDF[which(cigDF$type==6), which(colnames(cigDF)=="q21_01r" )]))
+mean(na.omit(cigDF[which(cigDF$type==7), which(colnames(cigDF)=="q21_01r" )]))
+
+## col 3
+median(na.omit(cigDF[which(cigDF$type==1), which(colnames(cigDF)=="q08r" )]))
+median(na.omit(cigDF[which(cigDF$type==2), which(colnames(cigDF)=="q08r" )]))
+median(na.omit(cigDF[which(cigDF$type==3), which(colnames(cigDF)=="q08r" )]))
+median(na.omit(cigDF[which(cigDF$type==4), which(colnames(cigDF)=="q08r" )]))
+median(na.omit(cigDF[which(cigDF$type==5), which(colnames(cigDF)=="q08r" )]))
+median(na.omit(cigDF[which(cigDF$type==6), which(colnames(cigDF)=="q08r" )]))
+median(na.omit(cigDF[which(cigDF$type==7), which(colnames(cigDF)=="q08r" )]))
 
 
+#plot: hist of founding dates
+##general plot
+qplot(cigDF[which(cigDF$q02r > 1850),which(colnames(cigDF)=="q02r" )],
+      geom="histogram",
+      binwidth = 5, 
+      main = "Founding dates", 
+      xlab = "Number of organisations",  
+      fill=I("grey"), 
+      col=I("black"), 
+      alpha=I(.5))
+
+##zoom in on 1990 and later
+qplot(cigDF[which(cigDF$q02r > 1990),which(colnames(cigDF)=="q02r" )],
+      geom="histogram",
+      binwidth = 1, 
+      main = "Founding dates", 
+      xlab = "Number of organisations",  
+      fill=I("grey"), 
+      col=I("black"), 
+      alpha=I(.5))
+
+    # plot1 = ggplot(totalsurvey, aes(YoF, na.rm = 'true')) + geom_histogram(breaks = seq (1830, 2020, by = 5), col="black", fill="lightgreen", alpha = 1, binwidth = 10 )+
+    # labs(title="") + 
+    # labs(x="Year", y="Number of founded organisations") +
+    # xlim(c (1830, 2020))+ scale_x_continuous(breaks=seq(1830, 2020, 10)) 
+    # 
+    # plot2 = ggplot(totalsurvey, aes(YoF, na.rm = 'true')) + geom_histogram(breaks = seq (1830, 2030, by = 5), col="black", fill="lightgreen", alpha = 1, binwidth = 10 )+
+    # facet_grid(~type3)+
+    # labs(title="") + 
+    # labs(x="Year", y="Number of founded organisations") +
+    # xlim(c (1830, 2030))+ scale_x_continuous(breaks=seq(1830, 2020, 40)) 
 
 
+##EVELIEN CODE###
 
 totalsurvey$yes_no <- ifelse(totalsurvey$X..AC == 0, 0,
                              ifelse (totalsurvey$X..AC  != 0, 1 , NA))
@@ -337,129 +802,6 @@ totalsurvey$yes_no <- ifelse(totalsurvey$X..AC == 0, 0,
 
 write.table(totalsurvey, file="totalsurvey.csv", row.names=FALSE,sep=";",qmethod=c("double"),fileEncoding = "UTF-8")
 
-plot1 = ggplot(totalsurvey, aes(YoF, na.rm = 'true')) + geom_histogram(breaks = seq (1830, 2020, by = 5), col="black", fill="lightgreen", alpha = 1, binwidth = 10 )+
-  labs(title="") + 
-  labs(x="Year", y="Number of founded organisations") +
-  xlim(c (1830, 2020))+ scale_x_continuous(breaks=seq(1830, 2020, 10)) 
-
-plot2 = ggplot(totalsurvey, aes(YoF, na.rm = 'true')) + geom_histogram(breaks = seq (1830, 2030, by = 5), col="black", fill="lightgreen", alpha = 1, binwidth = 10 )+
-  facet_grid(~type3)+
-  labs(title="") + 
-  labs(x="Year", y="Number of founded organisations") +
-  xlim(c (1830, 2030))+ scale_x_continuous(breaks=seq(1830, 2020, 40)) 
-
-##policy domains##
-{ totalsurvey <- within (totalsurvey,{
-  q16_01r <- Recode(q16_01, ' -9998 = NA'
-  )}) 
-  totalsurvey<- within(totalsurvey,{
-    q16_02r <- Recode(q16_02, ' -9998 = NA'
-    )})
-  totalsurvey<- within(totalsurvey,{
-    q16_03r <- Recode(q16_03, ' -9998 = NA'
-    )})
-  totalsurvey <- within(totalsurvey,{
-    q16_04r <- Recode(q16_04, ' -9998 = NA'
-    )})
-  totalsurvey <- within(totalsurvey,{
-    q16_05r <- Recode(q16_05, ' -9998 = NA'
-    )})
-  totalsurvey <- within(totalsurvey,{
-    q16_06r <- Recode(q16_06, ' -9998 = NA'
-    )})
-  totalsurvey <- within(totalsurvey,{
-    q16_07r <- Recode(q16_07, ' -9998 = NA'
-    )})
-  totalsurvey<- within(totalsurvey,{
-    q16_08r <- Recode(q16_08, '-9998 = NA'
-    )})
-  totalsurvey <- within(totalsurvey,{ 
-    q16_09r <- Recode(q16_09, ' -9998 = NA'
-    )})
-  totalsurvey<- within(totalsurvey,{ 
-    q16_10r <- Recode(q16_10, ' -9998 = NA'
-    )})
-  totalsurvey <- within(totalsurvey,{ 
-    q16_11r <- Recode(q16_11, ' -9998 = NA'
-    )})
-  totalsurvey<- within(totalsurvey,{
-    q16_12r <- Recode(q16_12, ' -9998 = NA'
-    )})
-  totalsurvey<- within(totalsurvey,{
-    q16_13r <- Recode(q16_13, ' -9998 = NA'
-    )})
-  totalsurvey <- within(totalsurvey,{
-    q16_14r <- Recode(q16_14, ' -9998 = NA'
-    )})
-  totalsurvey <- within(totalsurvey,{
-    q16_15r <- Recode(q16_15, ' -9998 = NA'
-    )})
-  totalsurvey <- within(totalsurvey,{ 
-    q16_16r <- Recode(q16_16, ' -9998 = NA'
-    )})
-  totalsurvey <- within(totalsurvey,{
-    q16_17r <- Recode(q16_17, ' -9998 = NA'
-    )})
-  totalsurvey <- within(totalsurvey,{
-    q16_18r <- Recode(q16_18, ' -9998 = NA'
-    )})
-  totalsurvey <- within(totalsurvey,{
-    q16_19r <- Recode(q16_19, ' -9998 = NA'
-    )})
-  totalsurvey <- within(totalsurvey,{
-    q16_20r <- Recode(q16_20, ' -9998 = NA'
-    )})
-  totalsurvey <- within(totalsurvey,{
-    q16_21r <- Recode(q16_21, ' -9998 = NA'
-    )})
-  totalsurvey <- within(totalsurvey,{
-    q16_22r <- Recode(q16_22, ' -9998 = NA'
-    )})
-  totalsurvey <- within(totalsurvey,{
-    q16_23r <- Recode(q16b_23, ' -9998 = NA'
-    )})
-  } 
-
-totalsurvey$q16_25r <- 0 # q16_25 = sport
-
-totalsurvey$q16_25r <- ifelse( totalsurvey$ID == 1665 | totalsurvey$ID == 187 | totalsurvey$ID == 2313 | totalsurvey$ID ==  2714 | totalsurvey$ID == 245
-                               | totalsurvey$ID == 2169 | totalsurvey$ID == 1421 | totalsurvey$ID == 2225 | totalsurvey$ID == 175  | totalsurvey$ID == 2754
-                               | totalsurvey$ID == 2238 | totalsurvey$ID == 2259 | totalsurvey$ID == 2264 | totalsurvey$ID == 2308 | totalsurvey$ID == 2321
-                               | totalsurvey$ID == 2231 | totalsurvey$ID == 2168 | totalsurvey$ID == 2265 | totalsurvey$ID == 2278 | totalsurvey$ID == 2317
-                               | totalsurvey$ID == 2206 | totalsurvey$ID == 2260 | totalsurvey$ID == 2760 | totalsurvey$ID == 2251 | totalsurvey$ID == 2732
-                               | totalsurvey$ID == 2147 | totalsurvey$ID == 2267 | totalsurvey$ID == 2306 | totalsurvey$ID == 2172 | totalsurvey$ID == 2281
-                               | totalsurvey$ID == 2304 | totalsurvey$ID == 2761 | totalsurvey$ID == 2171 | totalsurvey$ID == 2198 | totalsurvey$ID == 2309
-                               | totalsurvey$ID == 2315 | totalsurvey$ID == 2248 | totalsurvey$ID == 2221 | totalsurvey$ID == 1803 | totalsurvey$ID == 2208
-                               | totalsurvey$ID == 2287 | totalsurvey$ID == 2240 | totalsurvey$ID == 2200 | totalsurvey$ID == 2252 | totalsurvey$ID == 2275
-                               | totalsurvey$ID == 2189 | totalsurvey$ID == 2192 | totalsurvey$ID == 2320 | totalsurvey$ID == 2255 | totalsurvey$ID == 2153
-                               | totalsurvey$ID == 2145 | totalsurvey$ID == 2680 | totalsurvey$ID == 2152 | totalsurvey$ID == 2296 | totalsurvey$ID == 25
-                               | totalsurvey$ID == 2272 | totalsurvey$ID == 2245 | totalsurvey$ID == 2242 | totalsurvey$ID == 2314 | totalsurvey$ID == 2230
-                               | totalsurvey$ID == 2190, 1, totalsurvey$q16_25r )
-
-totalsurvey$q16_26r <- 0 #q16_26 = Jeunesse 
-
-totalsurvey$q16_26r <- ifelse( totalsurvey$ID == 1584 | totalsurvey$ID == 1724  | totalsurvey$ID == 1450 | totalsurvey$ID == 1338 | totalsurvey$ID == 1910
-                               | totalsurvey$ID == 1959 | totalsurvey$ID == 1309 | totalsurvey$ID ==1391 | totalsurvey$ID == 1946 | totalsurvey$ID ==  1626
-                               | totalsurvey$ID == 1537 | totalsurvey$ID == 2061 | totalsurvey$ID == 1874 | totalsurvey$ID == 1329| totalsurvey$ID ==  1909
-                               | totalsurvey$ID == 1451 | totalsurvey$ID == 1608 | totalsurvey$ID == 1383 | totalsurvey$ID ==1461 | totalsurvey$ID ==  1968
-                               | totalsurvey$ID == 1636 | totalsurvey$ID == 2496 , 1, totalsurvey$q16_26r )
-
-
-totalsurvey$q16_27r <- 0 #16_27 = manufacturing/services 
-
-totalsurvey$q16_27r <- ifelse(  totalsurvey$ID == 2594 | totalsurvey$ID == 2042 | totalsurvey$ID == 1288 | totalsurvey$ID == 1178 | totalsurvey$ID == 2352
-                                | totalsurvey$ID == 2462 | totalsurvey$ID == 2473 | totalsurvey$ID == 2620 | totalsurvey$ID == 2572 | totalsurvey$ID == 308
-                                | totalsurvey$ID == 597 | totalsurvey$ID == 2345 | totalsurvey$ID == 447 | totalsurvey$ID == 668 | totalsurvey$ID == 2556
-                                | totalsurvey$ID == 172 | totalsurvey$ID == 1000 | totalsurvey$ID == 1278 | totalsurvey$ID == 2421 | totalsurvey$ID == 2126
-                                | totalsurvey$ID == 838 | totalsurvey$ID == 1108  | totalsurvey$ID == 1152 | totalsurvey$ID == 2578 | totalsurvey$ID == 2363
-                                | totalsurvey$ID == 2057 | totalsurvey$ID == 2377 | totalsurvey$ID == 557 | totalsurvey$ID == 927 | totalsurvey$ID == 2523
-                                | totalsurvey$ID == 2511 | totalsurvey$ID == 2382 | totalsurvey$ID == 1186 | totalsurvey$ID == 1749 | totalsurvey$ID == 813
-                                | totalsurvey$ID == 566 | totalsurvey$ID == 2507 | totalsurvey$ID == 1873 | totalsurvey$ID == 2322 | totalsurvey$ID == 843
-                                | totalsurvey$ID == 2353 | totalsurvey$ID == 2440 | totalsurvey$ID == 1994 | totalsurvey$ID == 2372 , 1, totalsurvey$q16_27r )
-
-totalsurvey$rights <- ifelse(totalsurvey$q16_12r == 1 | totalsurvey$q16_19r == 1, 1, 0) # one category for rights
-totalsurvey$fordef <- ifelse(totalsurvey$q16_14r == 1 | totalsurvey$q16_15r == 1, 1, 0) # one category for rights
-totalsurvey$EU <- ifelse(totalsurvey$q16_16r == 1 | totalsurvey$q16_18r == 1, 1, 0) # one category for EU policy
 
 
 ## financial resources 
