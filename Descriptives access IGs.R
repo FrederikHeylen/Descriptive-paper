@@ -38,6 +38,9 @@
 
 #________________________________________Load data________________________________________#
 
+
+
+
 #Survey + advisory council + website coding + the hierachical coding
 data <- read.csv2("totalsurvey.csv")
 
